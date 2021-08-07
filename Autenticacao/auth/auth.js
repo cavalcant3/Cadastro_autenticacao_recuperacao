@@ -13,25 +13,25 @@ const users = [
 
 module.exports = function (passport) {
   function findUser(username) {
-    return users.find(item.username === username);
+    return users.find((user) => user.username === username);
   }
-  function findById(id) {
-    return users.find((item) => item._id === id);
+  function findUserById(id) {
+    return users.find((user) => user._id === id);
   }
-  passport.serializerUser((user, done) => {
+  passport.serializeUser((user, done) => {
     done(null, user._id);
   });
-  passport.deserializerUser(() => {
+  passport.deserializeUser((id, done) => {
     try {
-      const user = finduserById(id);
+      const user = findUserById(id);
       done(null, user);
-    } catch (error) {
+    } catch (err) {
       console.log(err);
-      return done(err, null);
+      done(err, null);
     }
   });
 
-  passport.user(
+  passport.use(
     new LocalStrategy(
       {
         usernameField: "username",
@@ -40,12 +40,17 @@ module.exports = function (passport) {
       (username, password, done) => {
         try {
           const user = findUser(username);
+          // usuario inexistente
+          if (!user) {
+            return done(null, false);
+          }
+
+          // comparando senhas
+          const isValid = bcrypt.compareSync(password, user.password);
           if (!isValid) return done(null, false);
 
-          const isValid = bcrypt.compareSync(password, user.password);
-          if (!isvalid) return done(null, false);
           return done(null, user);
-        } catch (error) {
+        } catch (err) {
           console.log(err);
           return done(err, false);
         }

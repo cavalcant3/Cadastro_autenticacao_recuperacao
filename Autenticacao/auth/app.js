@@ -3,6 +3,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+
 const passport = require("passport");
 const session = require("express-session");
 require("./auth")(passport);
@@ -23,6 +24,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(
+  session({
+    secret: "123",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 2 * 60 * 1000 },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// rotas
 app.use("/login", loginRouter);
 app.use("/users", usersRouter);
 app.use("/", indexRouter);
