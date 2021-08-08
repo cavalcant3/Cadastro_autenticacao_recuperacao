@@ -6,6 +6,7 @@ var logger = require("morgan");
 
 const passport = require("passport");
 const session = require("express-session");
+const MySQLStore = require("express-mysql-session");
 require("./auth")(passport);
 
 function authenticationMiddleware(req, res, next) {
@@ -31,10 +32,17 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   session({
-    secret: "123",
+    store: new MySQLStore({
+      host: process.env.MYSQL_HOST,
+      port: process.env.MYSQL_PORT,
+      user: process.env.MYSQL_USER,
+      password: process.env.MYSQL_PASSWORD,
+      database: process.env.MYSQL_DB,
+    }),
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 2 * 60 * 1000 },
+    cookie: { maxAge: 2 * 60 * 1000 }, //configurar tempo para apagar os dados (mudar numero 2 = minutos)
   })
 );
 app.use(passport.initialize());
