@@ -1,32 +1,16 @@
 const bcrypt = require("bcryptjs");
 const LocalStrategy = require("passport-local").Strategy;
 
-const users = [
-  {
-    _id: 1,
-    username: "adm",
-    // rash gerado da senha: 123
-    password: "$2a$06$HT.EmXYUUhNo3UQMl9APmeC0SwoGsx7FtMoAWdzGicZJ4wR1J8alW",
-    email: "jmatheusoc269@gmail.com",
-  },
-];
-
 module.exports = function (passport) {
-  function findUser(username) {
-    return users.find((user) => user.username === username);
-  }
-  function findUserById(id) {
-    return users.find((user) => user._id === id);
-  }
   passport.serializeUser((user, done) => {
     done(null, user._id);
   });
   passport.deserializeUser((id, done) => {
     try {
-      const user = findUserById(id);
+      const db = require("./db");
+      const user = await db.findUserById(id);
       done(null, user);
     } catch (err) {
-      console.log(err);
       done(err, null);
     }
   });
@@ -37,9 +21,10 @@ module.exports = function (passport) {
         usernameField: "username",
         passwordField: "password",
       },
-      (username, password, done) => {
+      async (username, password, done) => {
         try {
-          const user = findUser(username);
+          const db = require("./db");
+          const user = await db.findUserById(username);
           // usuario inexistente
           if (!user) {
             return done(null, false);
